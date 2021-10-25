@@ -1,0 +1,81 @@
+# encoding: utf-8
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Box / OS
+VAGRANT_BOX = 'ubuntu/trusty64'
+# Memorable name for your
+VM_NAME_NODE1 = 'node1'
+VM_NAME_NODE2 = 'node2'
+# VM User — 'vagrant' by default
+VM_USER = 'vagrant'
+# Username on your Mac
+MAC_USER = 'morzhanov'
+# Host folder to sync
+HOST_PATH_NODE1 = '/Users/' + MAC_USER + '/' + VM_NAME_NODE1
+HOST_PATH_NODE2 = '/Users/' + MAC_USER + '/' + VM_NAME_NODE2
+# Where to sync to on Guest — 'vagrant' is the default user name
+GUEST_PATH_NODE1 = '/home/' + VM_USER + '/' + VM_NAME_NODE1
+GUEST_PATH_NODE2 = '/home/' + VM_USER + '/' + VM_NAME_NODE2
+# App Port
+APP_PORT = 3000
+GUEST_APP_PORT_NODE1 = 3001
+GUEST_APP_PORT_NODE2 = 3002
+# Puppet host url
+PUPPET_URL=127.0.0.1:8140
+
+Vagrant.configure(2) do |config|
+    # node 1
+    config.vm.define "node1" do |node1|
+        # Vagrant box from Hashicorp
+        node1.vm.box = VAGRANT_BOX
+        # Actual machine name
+        node1.vm.hostname = VM_NAME
+        # Set VM name in Virtualbox
+        node1.vm.provider "virtualbox" do |v|
+            v.name = VM_NAME_NODE1
+            v.memory = 2048
+        end
+        #DHCP — comment this out if planning on using NAT instead
+        node1.vm.network "private_network", type: "dhcp"
+        # # Port forwarding — uncomment this to use NAT instead of DHCP
+        node1.vm.network "forwarded_port", guest: GUEST_APP_PORT_NODE1, host: APP_PORT
+        # Sync folder
+        node1.vm.synced_folder HOST_PATH_NODE1, GUEST_PATH_NODE1
+        # Disable default Vagrant folder, use a unique path per project
+        node1.vm.synced_folder '.', '/home/'+VM_USER+'', disabled: true
+        # Install Git, Node.js 6.x.x, Latest npm
+        node1.vm.provision "shell", inline: <<-SHELL
+        apt-get update
+        apt-get install puppet-agent
+        puppet config set server $PUPPET_URL
+        /opt/puppetlabs/bin/puppet resource service puppet ensure=running enable=true
+        SHELL
+    end
+    # node 2
+    config.vm.define "node1" do |node1|
+        # Vagrant box from Hashicorp
+        node1.vm.box = VAGRANT_BOX
+        # Actual machine name
+        node1.vm.hostname = VM_NAME
+        # Set VM name in Virtualbox
+        node1.vm.provider "virtualbox" do |v|
+            v.name = VM_NAME_NODE2
+            v.memory = 2048
+        end
+        #DHCP — comment this out if planning on using NAT instead
+        node1.vm.network "private_network", type: "dhcp"
+        # # Port forwarding — uncomment this to use NAT instead of DHCP
+        node1.vm.network "forwarded_port", guest: GUEST_APP_PORT_NODE2, host: APP_PORT
+        # Sync folder
+        node1.vm.synced_folder HOST_PATH_NODE2, GUEST_PATH_NODE2
+        # Disable default Vagrant folder, use a unique path per project
+        node1.vm.synced_folder '.', '/home/'+VM_USER+'', disabled: true
+        # Install Git, Node.js 6.x.x, Latest npm
+        node1.vm.provision "shell", inline: <<-SHELL
+        apt-get update
+        apt-get install puppet-agent
+        puppet config set server $PUPPET_URL
+        /opt/puppetlabs/bin/puppet resource service puppet ensure=running enable=true
+        SHELL
+    end
+end

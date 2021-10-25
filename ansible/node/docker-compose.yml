@@ -1,0 +1,13 @@
+version: '3'
+services:
+  node3:
+    build: .
+    container_name: iac_node3
+    ports:
+      - "3000:3003"
+
+  node4:
+    build: .
+    container_name: iac_node4
+    ports:
+      - "3000:3004"

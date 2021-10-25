@@ -1,0 +1,46 @@
+version: '3'
+services:
+  puppet:
+    container_name: iac_puppet
+    hostname: puppet
+    image: puppet/puppetserver
+    ports:
+      - 8140
+    volumes:
+      - ./code:/etc/puppetlabs/code/
+      - ./puppet/ssl:/etc/puppetlabs/puppet/ssl/
+      - ./puppet/serverdata:/opt/puppetlabs/server/data/puppetserver/
+
+  puppetdb-postgres:
+    container_name: iac_puppet_postgres
+    image: puppet/puppetdb-postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    expose:
+      - 5432
+    volumes:
+      - ./puppetdb-postgres/data:/var/lib/postgresql/data/
+
+  puppetdb:
+    image: puppet/puppetdb
+    container_name: iac_puppetdb
+    hostname: puppetdb
+    ports:
+      - 8080
+      - 8081
+    volumes:
+      - ./puppetdb/ssl:/etc/puppetlabs/puppet/ssl/
+
+  puppetboard:
+    image: puppet/puppetboard
+    container_name: iac_puppetboard
+    ports:
+      - 8000
+
+  puppetexplorer:
+    image: puppet/puppetexplorer
+    container_name: iac_puppetexplorer
+    ports:
+      - 80
+    read_only: true
